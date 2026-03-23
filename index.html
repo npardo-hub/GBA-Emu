@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VBA_Web - Game Boy Advance Emulator</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/coi-serviceworker/0.1.7/coi-serviceworker.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a; /* Fondo oscuro tipo app de Windows */
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Clase especial para que el Canvas del juego se vea nítido (Pixel Art) */
+        .image-pixelated {
+            image-rendering: optimizeSpeed;             /* Antiguos */
+            image-rendering: -moz-crisp-edges;          /* Firefox */
+            image-rendering: -webkit-optimize-contrast; /* Safari */
+            image-rendering: -o-crisp-edges;            /* OS X */
+            image-rendering: pixelated;                 /* Estándar */
+            -ms-interpolation-mode: nearest-neighbor;   /* IE */
+        }
+
+        #root {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Scrollbar estilo retro/oscuro */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #2d2d2d; }
+        ::-webkit-scrollbar-thumb { background: #4a4a4a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="module" src="/src/main.jsx"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/coi-serviceworker/0.1.7/coi-serviceworker.min.js"></script>
+
+    </body>
+</html>
