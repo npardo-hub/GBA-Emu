@@ -6,27 +6,29 @@ function App() {
   const [emulator, setEmulator] = useState(null);
   const [status, setStatus] = useState('Cargando motor...');
 
-  useEffect(() => {
-    const initEmulator = async () => {
-      if (canvasRef.current) {
-        try {
-          // Inicializamos el módulo apuntando a los archivos en /public/wasm/
-          const Module = await mGBA({
-            canvas: canvasRef.current,
-            locateFile: (path) => `/wasm/${path}`
-          });
+useEffect(() => {
+  const initEmulator = async () => {
+    if (canvasRef.current) {
+      try {
+        // Carga dinámica para que Vite no se trabe en el build
+        const { default: mGBA } = await import('@thenick775/mgba-wasm');
 
-          await Module.FSInit();
-          setEmulator(Module);
-          setStatus('Motor listo. Selecciona una ROM.');
-        } catch (err) {
-          console.error(err);
-          setStatus('Error al cargar el motor.');
-        }
+        const Module = await mGBA({
+          canvas: canvasRef.current,
+          locateFile: (path) => `/wasm/${path}`
+        });
+
+        await Module.FSInit();
+        setEmulator(Module);
+        setStatus('Motor listo. Selecciona una ROM.');
+      } catch (err) {
+        console.error(err);
+        setStatus('Error al cargar el motor.');
       }
-    };
-    initEmulator();
-  }, []);
+    }
+  };
+  initEmulator();
+}, []);
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
