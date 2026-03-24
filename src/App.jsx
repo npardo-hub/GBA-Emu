@@ -4,46 +4,42 @@ function App() {
   const canvasRef = useRef(null);
   const [emulator, setEmulator] = useState(null);
   const [status, setStatus] = useState('Cargando motor...');
- const mGBAFunc = window.mGBA; // Usamos la función global
 
-if (mGBAFunc) {
-  const Module = await mGBAFunc({
-    canvas: canvasRef.current,
-    locateFile: (path) => `/wasm/${path}`
-  });
-  // ... resto del código
-}
-useEffect(() => {
-  const initEmulator = async () => {
-    if (canvasRef.current) {
-      try {
-        // Usamos la función que el script cargó en el navegador
-        // 'mGBA' debería estar disponible globalmente
-        const mGBAFunc = window.mGBA; 
+  useEffect(() => {
+    const initEmulator = async () => {
+      // Esperamos a que el script de mGBA esté cargado en el window
+      if (canvasRef.current) {
+        try {
+          // Buscamos la función global que cargó el script del index.html
+          const mGBAFunc = window.mGBA;
 
-        if (!mGBAFunc) {
-          throw new Error("El motor mGBA no se ha cargado desde el script.");
+          if (!mGBAFunc) {
+            // Si el script aún no carga, esperamos un poco
+            setTimeout(initEmulator, 500);
+            return;
+          }
+
+          const Module = await mGBAFunc({
+            canvas: canvasRef.current,
+            // Importante: apunta a donde están tus archivos físicos en public/wasm/
+            locateFile: (path) => `/wasm/${path}`
+          });
+
+          await Module.FSInit();
+          setEmulator(Module);
+          setStatus('Motor listo. Selecciona una ROM (.gba)');
+        } catch (err) {
+          console.error("Error al inicializar mGBA:", err);
+          setStatus('Error: El motor no respondió.');
         }
-
-        const Module = await mGBAFunc({
-          canvas: canvasRef.current,
-          locateFile: (path) => `/wasm/${path}`
-        });
-
-        await Module.FSInit();
-        setEmulator(Module);
-        setStatus('Motor listo. Selecciona una ROM.');
-      } catch (err) {
-        console.error(err);
-        setStatus('Error: El motor no respondió.');
       }
-    }
-  };
-  initEmulator();
-}, []);
+    };
+    initEmulator();
+  }, []);
 
-  const handleFileChange = async (e) => {
+ const handleFileChange = async (e) => {
     const file = e.target.files[0];
+    // Si no hay archivo o el motor no ha cargado, no hacemos nada
     if (!file || !emulator) return;
 
     setStatus(`Cargando ${file.name}...`);
@@ -52,19 +48,22 @@ useEffect(() => {
       const buffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(buffer);
       
-      // Guardar en el sistema de archivos virtual de mGBA
+      // Creamos la ruta dentro del sistema de archivos virtual del emulador
       const path = `/data/games/${file.name}`;
+      
+      // Escribimos el archivo en la memoria del emulador
       emulator.FS.writeFile(path, uint8Array);
       
-      // Ejecutar el juego
+      // Intentamos cargar el juego
       if (emulator.loadGame(path)) {
         setStatus(`Jugando: ${file.name}`);
       } else {
         setStatus('Error: No se pudo cargar la ROM.');
       }
     } catch (err) {
+      // Si algo falla en la lectura del archivo, lo mostramos en consola
       console.error("Error al procesar el archivo:", err);
-      setStatus('Error al leer el archivo seleccionado.');
+      setStatus('Error al leer el archivo.');
     }
   };
 
@@ -80,25 +79,26 @@ useEffect(() => {
       fontFamily: 'sans-serif',
       padding: '20px' 
     }}>
-      <h1 style={{ marginBottom: '10px' }}>GBA Web Emulator</h1>
+      <h1 style={{ marginBottom: '10px', color: '#3f51b5' }}>GBA Web Player</h1>
       
       <div style={{ 
-        padding: '8px 15px', 
+        padding: '8px 20px', 
         borderRadius: '20px', 
         backgroundColor: emulator ? '#2e7d32' : '#d32f2f', 
         color: 'white',
         fontSize: '14px',
-        marginBottom: '20px'
+        marginBottom: '20px',
+        fontWeight: 'bold'
       }}>
         {status}
       </div>
 
       <div style={{ 
-        border: '12px solid #333', 
+        border: '10px solid #222', 
         borderRadius: '15px', 
         backgroundColor: '#000', 
-        boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-        lineHeight: 0 
+        boxShadow: '0 20px 50px rgba(0,0,0,0.7)',
+        overflow: 'hidden'
       }}>
         <canvas 
           ref={canvasRef} 
@@ -113,17 +113,18 @@ useEffect(() => {
         />
       </div>
 
-      <div style={{ marginTop: '30px', textAlign: 'center' }}>
+      <div style={{ marginTop: '30px' }}>
         <label style={{
-          padding: '12px 24px',
+          padding: '15px 30px',
           backgroundColor: '#3f51b5',
           color: 'white',
-          borderRadius: '5px',
+          borderRadius: '8px',
           cursor: emulator ? 'pointer' : 'not-allowed',
-          opacity: emulator ? 1 : 0.6,
-          transition: 'background 0.3s'
+          fontSize: '16px',
+          fontWeight: 'bold',
+          transition: 'transform 0.2s'
         }}>
-          {emulator ? '📂 Seleccionar Juego' : 'Esperando motor...'}
+          {emulator ? '📂 Cargar Juego' : 'Iniciando...'}
           <input 
             type="file" 
             accept=".gba" 
@@ -136,16 +137,18 @@ useEffect(() => {
 
       <div style={{ 
         marginTop: '40px', 
-        padding: '15px', 
+        padding: '20px', 
         backgroundColor: '#1e1e1e', 
         borderRadius: '10px',
-        fontSize: '13px',
-        color: '#aaa',
-        border: '1px solid #333'
+        fontSize: '14px',
+        color: '#888',
+        border: '1px solid #333',
+        maxWidth: '400px',
+        textAlign: 'center'
       }}>
-        <p style={{ margin: '5px 0' }}><strong>Controles:</strong></p>
-        <p style={{ margin: '5px 0' }}>D-Pad: Flechas | A: Z | B: X | L: A | R: S</p>
-        <p style={{ margin: '5px 0' }}>Start: Enter | Select: Shift</p>
+        <p style={{ margin: '5px 0', color: '#ccc' }}><strong>Controles de teclado:</strong></p>
+        <p style={{ margin: '5px 0' }}>Cruceta: Flechas | A: Z | B: X</p>
+        <p style={{ margin: '5px 0' }}>L: A | R: S | Start: Enter | Select: Shift</p>
       </div>
     </div>
   );
