@@ -2,12 +2,30 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GBA Hardware Lab - Local Engine</title>
+    <title>GBA V5</title>
+    <style>
+      /* Reset global para evitar bordes blancos y scroll innecesario */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background-color: #050505;
+        overflow-x: hidden;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      /* Ocultar barra de scroll en navegadores modernos */
+      ::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
+      }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script src="/emu/loader.js"></script>
+    <div id="root"></div>   
     <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

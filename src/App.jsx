@@ -76,13 +76,14 @@ function App() {
             backgroundColor: '#000'
           }}>
             <iframe
-              src={afterplayUrl}
+              src="https://afterplay.io/games/gba-emulator"
               width="100%"
               height="100%"
               frameBorder="0"
-              allow="autoplay; gamepad"
-              allowFullScreen
-              title="Afterplay GBA"
+              allow="autoplay; gamepad; fullscreen; keyboard"
+              loading="lazy"
+              style={{ borderRadius: '8px' }}
+              title="GBA Engine"
             ></iframe>
           </div>
         </div>
