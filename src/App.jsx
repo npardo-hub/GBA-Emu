@@ -7,17 +7,17 @@ function App() {
 
   useEffect(() => {
     const initEmulator = async () => {
-      if (emulator) return;
+      if (emulator) return; // Evita inicializar dos veces
 
       try {
-        // En lugar de esperar a window.mGBA, lo importamos directamente
-        // Esto es mucho más rápido y seguro en Vercel
+        // 1. Importamos el archivo como un módulo real de JS
         const mGBAModule = await import('/wasm/mgba.js');
         const mGBAFunc = mGBAModule.default;
 
         if (canvasRef.current && mGBAFunc) {
           const Module = await mGBAFunc({
             canvas: canvasRef.current,
+            // Ruta absoluta para Vercel
             locateFile: (path) => `/wasm/${path}`
           });
 
@@ -25,10 +25,11 @@ function App() {
 
           setEmulator(Module);
           setStatus('Motor listo. Selecciona una ROM.');
+          console.log("¡mGBA cargado con éxito!");
         }
       } catch (err) {
-        console.error("Error al cargar el motor:", err);
-        setStatus('Error: No se pudo cargar el motor.');
+        console.error("Error cargando el motor WASM:", err);
+        setStatus('Error: El motor no inició.');
       }
     };
 
