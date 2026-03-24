@@ -1,100 +1,62 @@
-import React, { useState } from 'react'
-import { Nostalgist } from 'nostalgist'
+import React, { useState } from 'react';
 
 function App() {
-  const [status, setStatus] = useState('Esperando inicio...')
-  const [launched, setLaunched] = useState(false)
+  const [gameLoaded, setGameLoaded] = useState(false);
 
-  const startEmulator = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
+  const handleFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    setLaunched(true)
-    setStatus('Configurando motor...')
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const romData = event.target.result;
+      setGameLoaded(true);
 
-    // Forzamos un ciclo de espera para que React pinte el DIV
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    try {
-      // Buscamos el elemento directamente por ID para evitar fallos de 'ref'
-      const container = document.getElementById('gba-canvas-container')
+      // CONFIGURACIÓN LOCAL
+      window.EJS_player = '#game';
+      window.EJS_core = 'gba'; 
+      window.EJS_gameUrl = romData; 
       
-      if (!container) {
-        throw new Error("El contenedor visual no se encontró en el DOM")
+      // ESTA RUTA ES LA CLAVE: apunta a tu carpeta public
+      window.EJS_pathtodata = '/emu/data/'; 
+      
+      if (window.EJS_init) {
+        window.EJS_init();
       }
-
-      setStatus('Descargando núcleos de Libretro...')
-
-      await Nostalgist.gba({
-        rom: file,
-        element: container,
-      })
-
-      setStatus(`Jugando: ${file.name}`)
-    } catch (err) {
-      console.error("Error detallado:", err)
-      setStatus(`Fallo: ${err.message}`)
-      // Si falla, permitimos reintentar
-      setLaunched(false)
-    }
-  }
+    };
+    reader.readAsDataURL(file);
+  };
 
   return (
-    <div style={{ textAlign: 'center', padding: '50px', background: '#121212', color: 'white', minHeight: '100vh' }}>
-      <h1 style={{ color: '#00e676' }}>GBA Hardware Lab</h1>
-      
-      <div style={{ margin: '20px', padding: '10px', background: '#333', borderRadius: '5px' }}>
-        {status}
-      </div>
+    <div style={{ textAlign: 'center', backgroundColor: '#0f0f0f', minHeight: '100vh', color: '#00e676', padding: '20px', fontFamily: 'monospace' }}>
+      <header style={{ borderBottom: '2px solid #00e676', marginBottom: '40px', paddingBottom: '10px' }}>
+        <h1>[ HARDWARE-LAB :: GBA-EMU ]</h1>
+      </header>
 
-      {/* CONTENEDOR CON ID ESTÁTICO */}
-      <div 
-        id="gba-canvas-container"
-        style={{ 
-          width: '640px', 
-          height: '480px', 
-          margin: '0 auto', 
-          background: '#000',
-          border: '4px solid #444',
-          display: launched ? 'block' : 'none',
-          position: 'relative'
-        }}
-      />
-
-      {!launched && (
-        <div style={{ marginTop: '30px' }}>
+      {!gameLoaded ? (
+        <div style={{ border: '1px solid #00e676', padding: '60px', display: 'inline-block', background: '#1a1a1a' }}>
+          <p>> SYSTEM READY...</p>
+          <p>> INSERT CARTRIDGE (.GBA)</p>
           <input 
             type="file" 
             accept=".gba" 
-            onChange={startEmulator} 
-            id="file-input" 
-            style={{ display: 'none' }} 
+            onChange={handleFile} 
+            style={{ marginTop: '20px', color: '#00e676' }} 
           />
-          <label 
-            htmlFor="file-input" 
-            style={{ 
-              padding: '15px 30px', 
-              background: '#3f51b5', 
-              cursor: 'pointer', 
-              borderRadius: '5px',
-              fontSize: '1.2rem'
-            }}
+        </div>
+      ) : (
+        <div style={{ width: '100%', maxWidth: '900px', margin: '0 auto' }}>
+          <div id="game" style={{ width: '100%', height: '600px', border: '4px solid #333' }}></div>
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{ marginTop: '20px', padding: '10px 30px', background: '#00e676', color: 'black', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
           >
-            📂 Cargar Juego .GBA
-          </label>
+            TERMINAR SESIÓN
+          </button>
         </div>
       )}
-
-      {launched && (
-        <button 
-          onClick={() => window.location.reload()}
-          style={{ marginTop: '20px', padding: '10px 20px', cursor: 'pointer' }}
-        >
-          Reiniciar Aplicación
-        </button>
-      )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
