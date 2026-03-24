@@ -4,16 +4,28 @@ function App() {
   const canvasRef = useRef(null);
   const [emulator, setEmulator] = useState(null);
   const [status, setStatus] = useState('Cargando motor...');
+ const mGBAFunc = window.mGBA; // Usamos la función global
 
- useEffect(() => {
+if (mGBAFunc) {
+  const Module = await mGBAFunc({
+    canvas: canvasRef.current,
+    locateFile: (path) => `/wasm/${path}`
+  });
+  // ... resto del código
+}
+useEffect(() => {
   const initEmulator = async () => {
-    if (canvasRef.current && !emulator) {
+    if (canvasRef.current) {
       try {
-        // En lugar de import(), cargamos el script de la carpeta public
-        // Esto evita que Vite intente analizar el código gigante
-        const mGBA = window.mGBA || (await import('/wasm/mgba.js')).default;
+        // Usamos la función que el script cargó en el navegador
+        // 'mGBA' debería estar disponible globalmente
+        const mGBAFunc = window.mGBA; 
 
-        const Module = await mGBA({
+        if (!mGBAFunc) {
+          throw new Error("El motor mGBA no se ha cargado desde el script.");
+        }
+
+        const Module = await mGBAFunc({
           canvas: canvasRef.current,
           locateFile: (path) => `/wasm/${path}`
         });
@@ -22,8 +34,8 @@ function App() {
         setEmulator(Module);
         setStatus('Motor listo. Selecciona una ROM.');
       } catch (err) {
-        console.error("Error al cargar:", err);
-        setStatus('Error al cargar el motor.');
+        console.error(err);
+        setStatus('Error: El motor no respondió.');
       }
     }
   };
