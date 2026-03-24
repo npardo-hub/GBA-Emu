@@ -3,34 +3,44 @@ import React, { useEffect, useRef, useState } from 'react';
 function App() {
   const canvasRef = useRef(null);
   const [emulator, setEmulator] = useState(null);
-  const [status, setStatus] = useState('Iniciando motor...');
+  const [status, setStatus] = useState('Esperando motor...');
 
- useEffect(() => {
+  useEffect(() => {
     const initEmulator = async () => {
+      // Si ya está inicializado, no hacer nada
       if (emulator) return;
 
-      try {
-        // Intentamos importar el archivo como un módulo real. 
-        // Esto le dice al navegador: "Oye, esto tiene import.meta, léelo bien".
-        const mGBAModule = await import('/wasm/mgba.js');
-        const mGBAFunc = mGBAModule.default;
+      // Accedemos a la función que cargó el index.html en el objeto global
+      const mGBAFunc = window.mGBA;
 
-        if (canvasRef.current && mGBAFunc) {
+      if (!mGBAFunc) {
+        // Si el script aún no carga, esperamos 500ms y reintentamos
+        console.log("Esperando a que mgba.js esté disponible en window...");
+        setTimeout(initEmulator, 500);
+        return;
+      }
+
+      try {
+        if (canvasRef.current) {
+          // Inicializamos el módulo usando la función global
           const Module = await mGBAFunc({
             canvas: canvasRef.current,
-            // Esta línea asegura que el .wasm se busque en la raíz /wasm/
+            // IMPORTANTE: Ruta absoluta para que Vercel encuentre el .wasm
             locateFile: (path) => `/wasm/${path}`
           });
 
-          if (Module.FSInit) await Module.FSInit();
+          // Inicializar el sistema de archivos virtual de mGBA
+          if (Module.FSInit) {
+            await Module.FSInit();
+          }
 
           setEmulator(Module);
-          setStatus('Motor listo. Selecciona una ROM.');
-          console.log("¡Éxito! Motor mGBA iniciado.");
+          setStatus('Motor listo. Selecciona una ROM (.gba)');
+          console.log("¡mGBA cargado con éxito!");
         }
       } catch (err) {
-        console.error("Error cargando el motor:", err);
-        setStatus('Error: Revisa la consola (F12).');
+        console.error("Error crítico al iniciar el motor:", err);
+        setStatus('Error: El motor no pudo iniciar.');
       }
     };
 
@@ -46,61 +56,97 @@ function App() {
       const buffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(buffer);
       
+      // Crear carpeta para los juegos si no existe
       const gameFolder = '/data/games';
-      try { emulator.FS.mkdirTree(gameFolder); } catch (e) {}
+      try {
+        emulator.FS.mkdirTree(gameFolder);
+      } catch (err) {
+        // La carpeta probablemente ya existe
+      }
 
       const filePath = `${gameFolder}/${file.name}`;
+      
+      // Escribir el archivo en el sistema virtual
       emulator.FS.writeFile(filePath, uint8Array);
       
+      // Cargar el juego
       if (emulator.loadGame(filePath)) {
         setStatus(`Jugando: ${file.name}`);
+        // Dar foco al canvas para que detecte el teclado
         canvasRef.current.focus();
       } else {
-        setStatus('Error: El archivo no es una ROM válida.');
+        setStatus('Error: ROM no válida o incompatible.');
       }
     } catch (err) {
-      console.error("Error al leer archivo:", err);
-      setStatus('Error al procesar la ROM.');
+      console.error("Error al procesar la ROM:", err);
+      setStatus('Error al leer el archivo.');
     }
   };
 
   return (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
-      <h1 style={{ color: '#00e676', fontFamily: '"Press Start 2P", cursive', fontSize: '1.2rem' }}>
-        GBA WEB PLAYER
-      </h1>
+    <div style={{ 
+      backgroundColor: '#121212', 
+      color: '#fff', 
+      minHeight: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      fontFamily: 'sans-serif' 
+    }}>
+      <h1 style={{ color: '#00e676', marginBottom: '10px' }}>GBA Web Emulator</h1>
       
       <div style={{ 
-        margin: '20px 0', 
-        padding: '10px', 
-        background: emulator ? '#2e7d32' : '#c62828', 
-        borderRadius: '4px' 
+        padding: '10px 20px', 
+        background: emulator ? '#2e7d32' : '#d32f2f', 
+        marginBottom: '20px', 
+        borderRadius: '5px',
+        fontWeight: 'bold'
       }}>
         {status}
       </div>
 
-      <canvas ref={canvasRef} tabIndex="0" style={{ width: '480px', height: '320px' }} />
+      <canvas 
+        ref={canvasRef} 
+        tabIndex="0" 
+        style={{ 
+          width: '480px', 
+          height: '320px', 
+          backgroundColor: '#000', 
+          border: '5px solid #333',
+          imageRendering: 'pixelated', // Para que no se vea borroso
+          outline: 'none'
+        }} 
+      />
 
-      <div style={{ marginTop: '20px' }}>
+      <div style={{ marginTop: '30px' }}>
         <input 
           type="file" 
           accept=".gba" 
           onChange={handleFileChange} 
-          id="upload" 
           style={{ display: 'none' }} 
+          id="rom-upload" 
         />
         <label 
-          htmlFor="upload" 
+          htmlFor="rom-upload" 
           style={{ 
-            padding: '10px 20px', 
+            padding: '12px 24px', 
             background: '#3f51b5', 
+            color: 'white',
             cursor: 'pointer', 
-            borderRadius: '4px',
-            display: 'inline-block'
+            borderRadius: '5px',
+            fontSize: '1rem',
+            transition: 'background 0.3s'
           }}
+          onMouseOver={(e) => e.target.style.background = '#303f9f'}
+          onMouseOut={(e) => e.target.style.background = '#3f51b5'}
         >
-          {emulator ? '📂 Cargar ROM' : 'Cargando...'}
+          {emulator ? '📂 Seleccionar ROM' : 'Cargando...'}
         </label>
+      </div>
+
+      <div style={{ marginTop: '20px', fontSize: '0.8rem', color: '#888' }}>
+        Usa el teclado para jugar después de cargar la ROM.
       </div>
     </div>
   );
