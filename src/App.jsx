@@ -88,7 +88,8 @@ function App() {
                 width="100%"
                 height="100%"
                 frameBorder="0"
-                allow="autoplay; gamepad; fullscreen; keyboard"
+                /* Certificación de hardware y aislamiento de memoria */
+                allow="autoplay; gamepad; fullscreen; keyboard; cross-origin-isolated"
                 title="GBA Engine"
               ></iframe>
             </div>
