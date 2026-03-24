@@ -9,24 +9,25 @@ function App() {
     const initEmulator = async () => {
       if (canvasRef.current) {
         try {
-          // Accedemos directamente a la función global cargada por el index.html
+          // 1. Verificamos si el script del index.html cargó la función
           const mGBAFunc = window.mGBA;
 
           if (!mGBAFunc) {
-            // Si el script tarda un poco, reintentamos en medio segundo
+            console.log("Esperando a que mGBA cargue en el window...");
             setTimeout(initEmulator, 500);
             return;
           }
 
+          // 2. Cargamos el módulo apuntando a la raíz (Vercel mueve public a /)
           const Module = await mGBAFunc({
             canvas: canvasRef.current,
-            // IMPORTANTE: Sin la palabra 'public', directo a /wasm/
-            locateFile: (path) => `/wasm/${path}` 
+            locateFile: (path) => `/wasm/${path}`
           });
 
           await Module.FSInit();
           setEmulator(Module);
           setStatus('Motor listo. Selecciona una ROM.');
+          console.log("¡Emulador cargado con éxito!");
         } catch (err) {
           console.error("Error al iniciar el motor:", err);
           setStatus('Error: El motor no respondió.');
