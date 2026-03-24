@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 
 function App() {
-  const [isSystemActive, setIsSystemActive] = useState(false);
-  const [romUrl, setRomUrl] = useState("");
+  const [lastBoot, setLastBoot] = useState(null);
 
-  // Certificación de carga: Genera una URL de objeto para el motor Afterplay
   const handleRomUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Crea un enlace directo a la memoria del navegador
+      // 1. Generar el túnel de datos local
       const blobUrl = URL.createObjectURL(file);
-      // Inyecta el parámetro ?rom= requerido por el software de Afterplay
+      // 2. Construir la ruta de bypass para Afterplay
       const finalUrl = `https://afterplay.io/games/gba-emulator?rom=${encodeURIComponent(blobUrl)}`;
-      setRomUrl(finalUrl);
-      setIsSystemActive(true);
+      
+      // 3. Lanzar en una nueva ventana para saltar el bloqueo de iframe
+      window.open(finalUrl, '_blank', 'width=1000,height=700,menubar=no,status=no');
+      
+      // Registrar el éxito en la interfaz
+      setLastBoot(file.name);
     }
   };
 
@@ -32,79 +34,60 @@ function App() {
         <h1 style={{ fontSize: '1.5rem', letterSpacing: '2px' }}>
           [ HARDWARE_LAB_PREMIUM // CORE_V5 ]
         </h1>
-        <p style={{ color: '#888', fontSize: '0.8rem' }}>STATUS: SYSTEM_READY // ENGINE: AFTERPLAY_CERTIFIED</p>
+        <p style={{ color: '#888', fontSize: '0.8rem' }}>STATUS: BYPASS_ENABLED // ENGINE: EXTERNAL_MONITOR</p>
       </header>
 
-      {!isSystemActive ? (
-        <div style={{ 
-          marginTop: '100px', 
-          textAlign: 'center', 
-          border: '1px solid #333', 
-          padding: '60px',
-          background: 'linear-gradient(145deg, #0a0a0a, #1a1a1a)',
-          boxShadow: '0 0 20px rgba(0, 255, 163, 0.1)'
-        }}>
-          <h2 style={{ marginBottom: '30px' }}>INSERT_MEDIA_TO_BYPASS_404</h2>
-          
-          <input 
-            type="file" 
-            accept=".gba" 
-            onChange={handleRomUpload}
-            id="rom-loader"
-            style={{ display: 'none' }}
-          />
+      <div style={{ 
+        marginTop: '100px', 
+        textAlign: 'center', 
+        border: '1px solid #333', 
+        padding: '60px',
+        background: 'linear-gradient(145deg, #0a0a0a, #1a1a1a)',
+        boxShadow: '0 0 20px rgba(0, 255, 163, 0.1)',
+        maxWidth: '600px'
+      }}>
+        <h2 style={{ marginBottom: '20px' }}>INITIALIZE_EXTERNAL_HARDWARE</h2>
+        <p style={{ color: '#666', marginBottom: '30px', fontSize: '0.9rem' }}>
+          EL SISTEMA DETECTÓ UN BLOQUEO DE FRAME. SE ACTIVARÁ UN MONITOR EXTERNO PARA LA EJECUCIÓN DEL NÚCLEO GBA.
+        </p>
+        
+        <input 
+          type="file" 
+          accept=".gba" 
+          onChange={handleRomUpload}
+          id="rom-loader"
+          style={{ display: 'none' }}
+        />
 
-          <label 
-            htmlFor="rom-loader"
-            style={{ 
-              padding: '15px 40px', 
-              border: '2px solid #00ffa3',
-              color: '#00ffa3',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              display: 'inline-block'
-            }}
-          >
-             MOUNT_GBA_ROM
-          </label>
-        </div>
-      ) : (
-        <div style={{ width: '100%', maxWidth: '1200px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <span>STREAMING_DATA_TO_CORE... [OK]</span>
-            <button 
-              onClick={() => { setIsSystemActive(false); setRomUrl(""); }}
-              style={{ background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer' }}
-            >
-              [ TERMINATE_PROCESS ]
-            </button>
+        <label 
+          htmlFor="rom-loader"
+          style={{ 
+            padding: '15px 40px', 
+            border: '2px solid #00ffa3',
+            color: '#00ffa3',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            display: 'inline-block'
+          }}
+        >
+            LAUNCH_EXTERNAL_MONITOR
+        </label>
+
+        {lastBoot && (
+          <div style={{ marginTop: '30px', color: '#888', fontSize: '0.8rem' }}>
+            LAST_SUCCESSFUL_BOOT: <span style={{ color: '#00ffa3' }}>{lastBoot}</span>
           </div>
+        )}
+      </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px' }}>
-            <div className="emu-screen-container" style={{ height: '600px' }}>
-              <div className="scanline"></div>
-              <iframe
-                  src={romUrl}
-                  width="100%"
-                  height="100%"
-                  frameBorder="0"
-                  /* Permisos de hardware y aislamiento de memoria */
-                  allow="autoplay; gamepad; fullscreen; keyboard; cross-origin-isolated"
-                  title="GBA Engine"
-                ></iframe>
-            </div>
-
-            <div style={{ border: '1px solid #333', padding: '15px', fontSize: '0.8rem', background: '#0a0a0a' }}>
-              <h3 style={{ color: '#00ffa3', borderBottom: '1px solid #333' }}>SYSTEM_SPECS</h3>
-              <ul style={{ listStyle: 'none', marginTop: '10px', color: '#888' }}>
-                <li><b>CPU:</b> ARM7TDMI // 16.78 MHz</li>
-                <li><b>VRAM:</b> 96 KB</li>
-                <li><b>WRAM:</b> 256 KB</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
+      <div style={{ marginTop: '50px', width: '100%', maxWidth: '800px', opacity: 0.5 }}>
+        <h3 style={{ fontSize: '0.8rem', borderBottom: '1px solid #333' }}>LAB_DIAGNOSTICS</h3>
+        <pre style={{ fontSize: '0.7rem', color: '#444', marginTop: '10px' }}>
+          - SECURITY_BYPASS: ACTIVE<br/>
+          - CROSS_ORIGIN_ISOLATION: {window.crossOriginIsolated ? 'ENABLED' : 'DISABLED'}<br/>
+          - FRAME_REFUSAL_WORKAROUND: REDIRECT_MODE
+        </pre>
+      </div>
     </div>
   );
 }
