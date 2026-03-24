@@ -65,6 +65,31 @@ function App() {
               [ TERMINATE_PROCESS ]
             </button>
           </div>
+          {/* Insertar este bloque justo debajo de BOOTING_GBA_CORE... */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px' }}>
+            <div className="emu-screen-container">
+              <div className="scanline"></div>
+              <iframe
+                src="https://afterplay.io/games/gba-emulator"
+                width="100%"
+                height="600px"
+                frameBorder="0"
+                allow="autoplay; gamepad; fullscreen; keyboard"
+                title="GBA Engine"
+              ></iframe>
+            </div>
+
+            <div style={{ border: '1px solid #333', padding: '15px', fontSize: '0.8rem', background: '#0a0a0a' }}>
+              <h3 style={{ color: '#00ffa3', borderBottom: '1px solid #333', paddingBottom: '5px' }}>SYSTEM_SPECS</h3>
+              <ul style={{ listStyle: 'none', marginTop: '10px', color: '#888', lineHeight: '1.8' }}>
+                <li><b style={{ color: '#00ffa3' }}>CPU:</b> ARM7TDMI // 16.78 MHz</li>
+                <li><b style={{ color: '#00ffa3' }}>VRAM:</b> 96 KB (Internal)</li>
+                <li><b style={{ color: '#00ffa3' }}>WRAM:</b> 32 KB + 256 KB (External)</li>
+                <li><b style={{ color: '#00ffa3' }}>RES:</b> 240 x 160 px</li>
+                <li><b style={{ color: '#00ffa3' }}>COLOR:</b> 15-bit RGB</li>
+              </ul>
+            </div>
+          </div>
 
           {/* CONTENEDOR DEL EMULADOR */}
           <div style={{ 
