@@ -1,85 +1,98 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 
 function App() {
-  const [gameLoaded, setGameLoaded] = useState(false)
+  const [isSystemActive, setIsSystemActive] = useState(false);
 
-  const handleFile = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const romData = event.target.result
-      setGameLoaded(true)
-
-      // Configuramos las variables globales que loader.js necesita
-      window.EJS_player = '#game-container' // ID del div donde se dibujará
-      window.EJS_core = 'gba'
-      window.EJS_gameUrl = romData
-      
-      // RUTA LOCAL: Apunta a tu carpeta public/emu/data/
-      window.EJS_pathtodata = '/emu/data/' 
-
-      // Iniciamos el emulador si el script ya cargó
-      if (typeof window.EJS_init === 'function') {
-        window.EJS_init()
-      } else {
-        console.error("El script loader.js no se ha cargado correctamente.")
-      }
-    }
-    reader.readAsDataURL(file)
-  }
+  // Esta URL es un contenedor genérico de Afterplay que permite cargar ROMS
+  // Puedes personalizarla más adelante con una API Key si decides escalar
+  const afterplayUrl = "https://afterplay.io/games/gba-emulator";
 
   return (
     <div style={{ 
-      textAlign: 'center', 
-      backgroundColor: '#0a0a0a', 
+      backgroundColor: '#050505', 
       minHeight: '100vh', 
-      color: '#00ff41', // Verde Matrix/Terminal
-      padding: '20px', 
-      fontFamily: 'monospace' 
+      color: '#00ffa3', 
+      fontFamily: '"Courier New", Courier, monospace',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '20px'
     }}>
-      <h1 style={{ textShadow: '0 0 10px #00ff41' }}>[ HARDWARE LAB :: SYSTEM V4 ]</h1>
+      {/* HEADER ESTILO HARDWARE LAB */}
+      <header style={{ width: '100%', maxWidth: '900px', borderBottom: '1px solid #00ffa3', marginBottom: '30px', paddingBottom: '10px' }}>
+        <h1 style={{ fontSize: '1.5rem', letterSpacing: '2px' }}>
+          [ HARDWARE_LAB_PREMIUM // CORE_V5 ]
+        </h1>
+        <p style={{ color: '#888', fontSize: '0.8rem' }}>STATUS: SYSTEM_READY // ENGINE: AFTERPLAY_EXTERNAL</p>
+      </header>
 
-      {!gameLoaded ? (
+      {!isSystemActive ? (
         <div style={{ 
-          marginTop: '50px', 
-          border: '1px solid #00ff41', 
-          padding: '40px', 
-          display: 'inline-block',
-          background: '#111' 
+          marginTop: '100px', 
+          textAlign: 'center', 
+          border: '1px solid #333', 
+          padding: '60px',
+          background: 'linear-gradient(145deg, #0a0a0a, #1a1a1a)',
+          boxShadow: '0 0 20px rgba(0, 255, 163, 0.1)'
         }}>
-          <p> ESPERANDO CARTUCHO...</p>
-          <input 
-            type="file" 
-            accept=".gba" 
-            onChange={handleFile} 
-            style={{ marginTop: '20px', cursor: 'pointer' }}
-          />
-        </div>
-      ) : (
-        <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
-          {/* Este es el div que busca window.EJS_player */}
-          <div id="game-container" style={{ width: '100%', height: '500px', border: '2px solid #333' }}></div>
-          
+          <h2 style={{ marginBottom: '30px' }}>INITIALIZE VIRTUAL GBA?</h2>
           <button 
-            onClick={() => window.location.reload()} 
+            onClick={() => setIsSystemActive(true)}
             style={{ 
-              marginTop: '20px', 
-              padding: '10px 20px', 
-              background: '#00ff41', 
-              color: 'black', 
-              border: 'none', 
+              padding: '15px 40px', 
+              background: 'transparent', 
+              color: '#00ffa3', 
+              border: '2px solid #00ffa3',
+              fontSize: '1.1rem',
+              cursor: 'pointer',
               fontWeight: 'bold',
-              cursor: 'pointer'
+              transition: '0.3s'
             }}
+            onMouseOver={(e) => e.target.style.background = 'rgba(0,255,163,0.1)'}
+            onMouseOut={(e) => e.target.style.background = 'transparent'}
           >
-            REINICIAR SISTEMA
+             RUN_SEQUENCER
           </button>
         </div>
+      ) : (
+        <div style={{ width: '100%', maxWidth: '1000px', height: '700px', position: 'relative' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <span>BOOTING_GBA_CORE...</span>
+            <button 
+              onClick={() => setIsSystemActive(false)}
+              style={{ background: 'none', border: 'none', color: '#ff4d4d', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              [ TERMINATE_PROCESS ]
+            </button>
+          </div>
+
+          {/* CONTENEDOR DEL EMULADOR */}
+          <div style={{ 
+            width: '100%', 
+            height: '100%', 
+            border: '1px solid #333', 
+            borderRadius: '10px', 
+            overflow: 'hidden',
+            backgroundColor: '#000'
+          }}>
+            <iframe
+              src={afterplayUrl}
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              allow="autoplay; gamepad"
+              allowFullScreen
+              title="Afterplay GBA"
+            ></iframe>
+          </div>
+        </div>
       )}
+
+      <footer style={{ marginTop: 'auto', color: '#444', fontSize: '0.7rem' }}>
+        © 2026 HARDWARE_LAB // ENCRYPTED_CONNECTION_ESTABLISHED
+      </footer>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
