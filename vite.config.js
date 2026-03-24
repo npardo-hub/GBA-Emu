@@ -3,13 +3,17 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  optimizeDeps: {
-    // Evita que Vite intente pre-procesar la librería pesada
-    exclude: ['@thenick775/mgba-wasm']
-  },
   build: {
+    rollupOptions: {
+      // Le decimos a Rollup que NO intente procesar esta librería
+      external: ['@thenick775/mgba-wasm'],
+    },
     commonjsOptions: {
-      include: [/@thenick775\/mgba-wasm/, /node_modules/]
+      // Evita que el plugin de CommonJS intente analizar la librería
+      exclude: [/@thenick775\/mgba-wasm/],
     }
+  },
+  optimizeDeps: {
+    exclude: ['@thenick775/mgba-wasm']
   }
 })
