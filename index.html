@@ -1,31 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GBA Emulator</title>
+    <title>GBA Emulator - Hardware Lab</title>
     
     <script type="module" src="/wasm/mgba.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #1a1a1a; /* Fondo oscuro tipo app de Windows */
+            background-color: #1a1a1a;
             color: #e0e0e0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow-x: hidden;
         }
 
-        /* Clase especial para que el Canvas del juego se vea nítido (Pixel Art) */
-        .image-pixelated {
-            image-rendering: optimizeSpeed;             /* Antiguos */
-            image-rendering: -moz-crisp-edges;          /* Firefox */
-            image-rendering: -webkit-optimize-contrast; /* Safari */
-            image-rendering: -o-crisp-edges;            /* OS X */
-            image-rendering: pixelated;                 /* Estándar */
-            -ms-interpolation-mode: nearest-neighbor;   /* IE */
+        /* Optimizaciones para el renderizado de pixeles del emulador */
+        canvas {
+            image-rendering: optimizeSpeed;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: pixelated;
+            -ms-interpolation-mode: nearest-neighbor;
         }
 
         #root {
@@ -34,19 +34,16 @@
             min-height: 100vh;
         }
 
-        /* Scrollbar estilo retro/oscuro */
+        /* Estética retro para la barra de desplazamiento */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #2d2d2d; }
         ::-webkit-scrollbar-thumb { background: #4a4a4a; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
     </style>
 </head>
-
 <body>
-    
     <div id="root"></div>
-    <script type="module" src="/src/App.jsx"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/coi-serviceworker/0.1.7/coi-serviceworker.min.js"></script>
-
-    </body>
+    
+    <script type="module" src="/src/main.jsx"></script>
+</body>
 </html>
