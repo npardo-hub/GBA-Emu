@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GBA Emulator</title>
@@ -8,9 +8,14 @@
     <script type="module" src="/wasm/mgba.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-</head>
-<body>
+    <style>
+        body { margin: 0; background-color: #1a1a1a; color: #e0e0e0; font-family: sans-serif; }
+        #root { display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        canvas { image-rendering: pixelated; border: 5px solid #333; width: 480px; height: 320px; }
+    </style>
+  </head>
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-</body>
+  </body>
 </html>
