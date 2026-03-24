@@ -1,4 +1,4 @@
-importScripts('public/wasm/mgba.js');
+importScripts('/wasm/mgba.js');
 
 let emulator = null;
 

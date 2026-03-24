@@ -20,7 +20,8 @@ function App() {
 
           const Module = await mGBAFunc({
             canvas: canvasRef.current,
-            locateFile: (path) => `/wasm/${path}`
+            // IMPORTANTE: Sin la palabra 'public', directo a /wasm/
+            locateFile: (path) => `/wasm/${path}` 
           });
 
           await Module.FSInit();
