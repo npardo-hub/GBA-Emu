@@ -5,30 +5,32 @@ function App() {
   const [emulator, setEmulator] = useState(null);
   const [status, setStatus] = useState('Iniciando motor...');
 
-  useEffect(() => {
+ useEffect(() => {
     const initEmulator = async () => {
       if (emulator) return;
 
       try {
-        // Importación dinámica del archivo JS en la carpeta public/wasm
+        // Intentamos importar el archivo como un módulo real. 
+        // Esto le dice al navegador: "Oye, esto tiene import.meta, léelo bien".
         const mGBAModule = await import('/wasm/mgba.js');
         const mGBAFunc = mGBAModule.default;
 
         if (canvasRef.current && mGBAFunc) {
           const Module = await mGBAFunc({
             canvas: canvasRef.current,
+            // Esta línea asegura que el .wasm se busque en la raíz /wasm/
             locateFile: (path) => `/wasm/${path}`
           });
 
           if (Module.FSInit) await Module.FSInit();
 
           setEmulator(Module);
-          setStatus('Motor listo. Sube tu juego (.gba)');
-          console.log("mGBA cargado correctamente");
+          setStatus('Motor listo. Selecciona una ROM.');
+          console.log("¡Éxito! Motor mGBA iniciado.");
         }
       } catch (err) {
-        console.error("Error al cargar el motor:", err);
-        setStatus('Error: No se pudo cargar el motor.');
+        console.error("Error cargando el motor:", err);
+        setStatus('Error: Revisa la consola (F12).');
       }
     };
 
