@@ -5,38 +5,51 @@ function App() {
   const [emulator, setEmulator] = useState(null);
   const [status, setStatus] = useState('Cargando motor...');
 
-useEffect(() => {
+  useEffect(() => {
     const initEmulator = async () => {
+      // Si ya tenemos el emulador, no reintentamos
+      if (emulator) return;
+
       if (canvasRef.current) {
         try {
+          // 1. Verificamos si mGBA existe en el objeto global (cargado por index.html)
           const mGBAFunc = window.mGBA;
 
           if (!mGBAFunc) {
-            // Si el script del index.html no ha cargado, esperamos
             console.log("Esperando script de mgba.js...");
-            setTimeout(initEmulator, 500);
+            setTimeout(initEmulator, 1000); // Reintento con un poco más de margen
             return;
           }
 
-          // Inicializamos el módulo
+          // 2. Inicializamos el módulo apuntando a la raíz del despliegue
           const Module = await mGBAFunc({
             canvas: canvasRef.current,
-            // IMPORTANTE: En Vercel, la ruta debe ser absoluta desde la raíz
-            locateFile: (path) => `/wasm/${path}`
+            // Forzamos la ruta absoluta para evitar errores en subdirectorios de Vercel
+            locateFile: (path) => {
+              const fullPath = `/wasm/${path}`;
+              console.log("Cargando recurso WASM:", fullPath);
+              return fullPath;
+            }
           });
 
-          await Module.FSInit();
+          // 3. Inicializar el Sistema de Archivos Virtual
+          if (Module.FSInit) {
+            await Module.FSInit();
+          }
+
           setEmulator(Module);
           setStatus('Motor listo. Selecciona una ROM.');
-          console.log("Motor mGBA cargado correctamente.");
+          console.log("¡Motor mGBA cargado con éxito!");
+
         } catch (err) {
-          console.error("Error crítico de inicialización:", err);
+          console.error("Error crítico al iniciar el motor:", err);
           setStatus('Error: El motor no respondió.');
         }
       }
     };
+
     initEmulator();
-  }, []);
+  }, [emulator]); // Se ejecuta al montar o si el estado del emulador cambia
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
@@ -46,12 +59,23 @@ useEffect(() => {
     try {
       const buffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(buffer);
-      const path = `/data/games/${file.name}`;
       
-      emulator.FS.writeFile(path, uint8Array);
+      // Crear carpeta de juegos si no existe
+      const gameFolder = '/data/games';
+      try {
+        emulator.FS.mkdirTree(gameFolder);
+      } catch (e) {
+        // La carpeta ya podría existir
+      }
+
+      const filePath = `${gameFolder}/${file.name}`;
+      emulator.FS.writeFile(filePath, uint8Array);
       
-      if (emulator.loadGame(path)) {
+      // Intentar cargar el juego
+      if (emulator.loadGame(filePath)) {
         setStatus(`Jugando: ${file.name}`);
+        // Enfocar el canvas para que los controles funcionen de inmediato
+        canvasRef.current.focus();
       } else {
         setStatus('Error: No se pudo cargar la ROM.');
       }
@@ -62,17 +86,67 @@ useEffect(() => {
   };
 
   return (
-    <div style={{ backgroundColor: '#121212', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif' }}>
-      <h1>GBA Web Emulator</h1>
-      <div style={{ padding: '10px', background: emulator ? '#2e7d32' : '#d32f2f', marginBottom: '20px', borderRadius: '5px' }}>
+    <div style={{ 
+      backgroundColor: '#121212', 
+      color: '#fff', 
+      minHeight: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      fontFamily: 'sans-serif',
+      padding: '20px'
+    }}>
+      <h1 style={{ color: '#00e676', marginBottom: '10px' }}>GBA Web Emulator</h1>
+      
+      <div style={{ 
+        padding: '10px 20px', 
+        background: emulator ? '#2e7d32' : '#d32f2f', 
+        marginBottom: '20px', 
+        borderRadius: '5px',
+        fontWeight: 'bold',
+        transition: 'all 0.3s ease'
+      }}>
         {status}
       </div>
-      <canvas ref={canvasRef} style={{ width: '480px', height: '320px', backgroundColor: '#000', border: '5px solid #333' }} />
-      <div style={{ marginTop: '20px' }}>
-        <input type="file" accept=".gba" onChange={handleFileChange} style={{ display: 'none' }} id="rom-upload" />
-        <label htmlFor="rom-upload" style={{ padding: '10px 20px', background: '#3f51b5', cursor: 'pointer', borderRadius: '5px' }}>
-          {emulator ? 'Cargar ROM' : 'Iniciando...'}
+
+      <canvas 
+        ref={canvasRef} 
+        tabIndex="0" // Permite capturar eventos de teclado
+        style={{ 
+          width: '480px', 
+          height: '320px', 
+          backgroundColor: '#000', 
+          border: '5px solid #333',
+          boxShadow: '0 0 20px rgba(0,0,0,0.5)',
+          imageRendering: 'pixelated'
+        }} 
+      />
+
+      <div style={{ marginTop: '30px' }}>
+        <input 
+          type="file" 
+          accept=".gba" 
+          onChange={handleFileChange} 
+          style={{ display: 'none' }} 
+          id="rom-upload" 
+        />
+        <label 
+          htmlFor="rom-upload" 
+          style={{ 
+            padding: '12px 24px', 
+            background: emulator ? '#3f51b5' : '#555', 
+            cursor: emulator ? 'pointer' : 'not-allowed', 
+            borderRadius: '5px',
+            fontSize: '1.1rem',
+            transition: 'background 0.2s'
+          }}>
+          {emulator ? '📁 Seleccionar ROM' : 'Iniciando Motor...'}
         </label>
+      </div>
+
+      <div style={{ marginTop: '20px', fontSize: '0.8rem', color: '#888' }}>
+        Asegúrate de tener los archivos en /public/wasm/
       </div>
     </div>
   );
