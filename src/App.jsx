@@ -84,14 +84,14 @@ function App() {
             <div className="emu-screen-container" style={{ height: '600px' }}>
               <div className="scanline"></div>
               <iframe
-                src={romUrl}
-                width="100%"
-                height="100%"
-                frameBorder="0"
-                /* Certificación de hardware y aislamiento de memoria */
-                allow="autoplay; gamepad; fullscreen; keyboard; cross-origin-isolated"
-                title="GBA Engine"
-              ></iframe>
+                  src={romUrl}
+                  width="100%"
+                  height="100%"
+                  frameBorder="0"
+                  /* Permisos de hardware y aislamiento de memoria */
+                  allow="autoplay; gamepad; fullscreen; keyboard; cross-origin-isolated"
+                  title="GBA Engine"
+                ></iframe>
             </div>
 
             <div style={{ border: '1px solid #333', padding: '15px', fontSize: '0.8rem', background: '#0a0a0a' }}>
